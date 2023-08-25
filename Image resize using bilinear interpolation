@@ -1,0 +1,57 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from skimage import io
+
+# Load an image
+image = io.imread("your_image_path_here.jpg")
+
+# Function to perform bilinear interpolation for rescaling
+def rescale_image(image, scale_factor):
+    # Determine the new dimensions after scaling
+    new_height = int(image.shape[0] * scale_factor)
+    new_width = int(image.shape[1] * scale_factor)
+    
+    # Create an empty output image with the new dimensions
+    output_image = np.zeros((new_height, new_width, 3), dtype=np.uint8)
+    
+    # Calculate the scaling factors along the height and width axes
+    scale_height = image.shape[0] / new_height
+    scale_width = image.shape[1] / new_width
+    
+    # Perform bilinear interpolation to fill in the pixels of the output image
+    for i in range(new_height):
+        for j in range(new_width):
+            x = i * scale_height
+            y = j * scale_width
+            
+            x1, y1 = int(x), int(y)
+            x2, y2 = min(x1 + 1, image.shape[0] - 1), min(y1 + 1, image.shape[1] - 1)
+            
+            # Bilinear interpolation formula
+            output_image[i, j] = (
+                (x2 - x) * (y2 - y) * image[x1, y1] +
+                (x - x1) * (y2 - y) * image[x2, y1] +
+                (x2 - x) * (y - y1) * image[x1, y2] +
+                (x - x1) * (y - y1) * image[x2, y2]
+            ).astype(np.uint8)
+    
+    return output_image
+
+# Define the scaling factor (e.g., 0.5 for halving the size, 2.0 for doubling)
+scale_factor = 0.5
+
+# Rescale the image
+rescaled_image = rescale_image(image, scale_factor)
+
+# Display the original and rescaled images
+plt.subplot(121)
+plt.imshow(image)
+plt.title("Original Image")
+plt.axis('off')
+
+plt.subplot(122)
+plt.imshow(rescaled_image)
+plt.title("Rescaled Image")
+plt.axis('off')
+
+plt.show()
